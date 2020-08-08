@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+    databse:
+        image: 'mongo'
+        container_name: 'mongo-dota'
+        environment:
+            - MONGO_INITDB_DATABASE=dota
+        ports:
+            - '27017:27017'
