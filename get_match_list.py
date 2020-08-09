@@ -4,19 +4,13 @@ import os
 from pymongo import MongoClient
 import argparse
 
+from core import connect
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--type", choices=['new', 'old'], default='new')
 args = parser.parse_args()
 
 dotenv.load_dotenv( dotenv.find_dotenv() )
-
-def connect_mongo(database_name='dota', collection_name='matchs'):
-    host = os.getenv("MONGO_HOST")
-    port = int(os.getenv("MONGO_PORT"))
-    cliente = MongoClient(host, port)
-    database = cliente[database_name]
-    collection = database[collection_name]
-    return cliente, database, collection
 
 def get_public_matchs( **kwargs ):
     url = 'https://api.opendota.com/api/publicMatches'
@@ -26,7 +20,7 @@ def get_public_matchs( **kwargs ):
     return data
 
 def insert_data( data:list, collection_name:str ):
-    *_, collection = connect_mongo( database_name='dota', collection_name='matchs')
+    *_, collection = connect.connect_mongo( database_name='dota', collection_name='matchs')
     count = 0
     for i in data:
         if collection.find( {'match_id': i['match_id'] } ).count():
@@ -44,7 +38,7 @@ def get_new_matches():
         count = insert_data( data, collection_name='matchs' )
 
 def get_history_matches():
-    collection = connect_mongo()[-1]
+    collection = connect.connect_mongo()[-1]
     last_match = collection.find().sort("match_id", 1).limit(1).next()['match_id']
     while True:
         data = get_public_matchs( less_than_match_id=last_match )
